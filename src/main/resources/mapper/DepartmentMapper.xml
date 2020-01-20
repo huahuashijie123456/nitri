@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fuhuitong.nitri.sys.mapper.DepartmentMapper">
+
+    <!-- 一对多 -->
+    <resultMap type="com.fuhuitong.nitri.sys.entity.Department" id="findDeptAndEmpList">
+        <id column="id" property="id"/>
+        <id column="parent_id" property="parentId"/>
+        <result column="name" property="name"/>
+        <collection property="users" ofType="com.fuhuitong.nitri.sys.entity.UserDetail">
+            <id column="userid" property="id"/>
+            <result column="username" property="username"/>
+            <result column="uname" property="name"/>
+        </collection>
+    </resultMap>
+
+    <select id="findDepartmentTree" resultMap="findDeptAndEmpList"
+            resultType="com.fuhuitong.nitri.sys.entity.Department">
+      select a.id,a.NAME,a.parent_id,b.username,b.id userid,b.name uname from
+        (select * from department where FIND_IN_SET (id, queryAllChildByOrg('0')) order by sort) a
+        left join (select username,office_id,id,name from user where office_id in (select id from department where FIND_IN_SET(id, queryAllChildByOrg('0')) order by sort)
+        ) b on a.id=b.office_id
+    </select>
+
+
+</mapper>

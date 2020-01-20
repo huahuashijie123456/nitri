@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fuhuitong.nitri.sys.mapper.AuthMapper">
+
+    <select id="findByUsername" resultType="com.fuhuitong.nitri.sys.entity.UserDetail">
+        SELECT * from user where username = #{username}
+    </select>
+
+    <insert id="insertUser" parameterType="com.fuhuitong.nitri.sys.entity.UserDetail" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into user (id,username,password,phone,status,user_type) VALUES (#{id}, #{username}, #{password},#{phone},#{status},#{userType});
+    </insert>
+
+    <insert id="insertRoles">
+        insert into user_role (id,user_id, role_id) VALUES (#{id}, #{userId}, #{roleId});
+    </insert>
+
+    <select id="findRoleById" resultType="com.fuhuitong.nitri.sys.entity.Role">
+      select id, name, name_zh from role where id = #{roleId}
+    </select>
+
+    <select id="findRoleByUserId" resultType="com.fuhuitong.nitri.sys.entity.Role">
+        select * from role where id in (SELECT role_id from user_role where user_id = #{userId});
+    </select>
+
+
+    <select id="findUserListPage" resultType="com.fuhuitong.nitri.sys.entity.UserDetail">
+        SELECT
+        d.name_zh role_name,
+        c.role_id,
+        a.*
+        FROM
+        USER a
+        LEFT JOIN user_role c ON a.id = c.user_id
+        LEFT JOIN role d ON c.role_id = d.id
+        WHERE
+        a.user_type=1
+        <if test="userDetail.name!=null and userDetail.name!=''">
+            and (a.name like '%${userDetail.name}%' or a.username like '%${userDetail.name}%')
+        </if>
+        <if test="userDetail.isLocked!=null">
+            and a.is_locked=#{userDetail.isLocked}
+        </if>
+        ORDER BY a.update_time DESC
+    </select>
+
+    <select id="queryUserByUserId" resultType="com.fuhuitong.nitri.sys.entity.UserDetail">
+            select
+            u.*,
+            ct.name tempName
+            from
+            user u
+            LEFT JOIN channel_rule cr on cr.channel_id=u.channel_id
+            LEFT JOIN channel_temp ct on ct.id=u.template_id
+            where
+                u.id=#{userId}
+    </select>
+</mapper>

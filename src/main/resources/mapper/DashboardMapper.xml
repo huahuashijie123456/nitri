@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fuhuitong.nitri.sys.mapper.DashboardMapper">
+
+
+    <select id="homePageStatistics" resultType="com.fuhuitong.nitri.sys.entity.Dashboard">
+     select a.a1 dayLoanCount,ifnull(a.a2,0) dayLoanMonySum,b.b1 LoanCount,ifnull(b.b2,0) LoanMonySum,c dayRegisterCount,d RegisterCount,e merchantCount
+     FROM ( (SELECT count(*) a1, sum(amount) a2
+     FROM order_manager o
+     LEFT JOIN product p
+     ON o.product_id = p.product_id
+     WHERE p.merchants_id=#{merchantsId} and o.status='30' and date(o.update_time)=CURDATE()) a join (SELECT count(*) b1, sum(amount) b2
+     FROM order_manager o
+     LEFT JOIN product p
+     ON o.product_id = p.product_id
+     WHERE p.merchants_id=#{merchantsId} and o.status='30' and date(o.update_time)=CURDATE()) b ) join (select count(*) c
+     FROM user
+     WHERE date(create_time)=CURDATE() and user_type='3') c join (select count(*) d
+     FROM user
+     WHERE user_type='3') d join (select count(*) e
+     FROM merchants) e;
+    </select>
+
+    <select id="getAweekStatistics" resultType="com.fuhuitong.nitri.sys.entity.AweekStatistics">
+        SELECT
+           a.*,
+        ifnull (b.sum,0) sumamount,
+        ifnull(b.count,0) count
+        FROM
+            (
+        SELECT
+        CASE
+            WEEKDAY( a.click_date )
+            WHEN 6 THEN
+            '星期日'
+            WHEN 0 THEN
+            '星期一'
+            WHEN 1 THEN
+            '星期二'
+            WHEN 2 THEN
+            '星期三'
+            WHEN 3 THEN
+            '星期四'
+            WHEN 4 THEN
+            '星期五'
+            WHEN 5 THEN
+            '星期六'
+            END weekday,
+            a.click_date
+        FROM
+            (
+        SELECT
+            curdate( ) AS click_date UNION ALL
+        SELECT
+            date_sub( curdate( ), INTERVAL 1 DAY ) AS click_date UNION ALL
+        SELECT
+            date_sub( curdate( ), INTERVAL 2 DAY ) AS click_date UNION ALL
+        SELECT
+            date_sub( curdate( ), INTERVAL 3 DAY ) AS click_date UNION ALL
+        SELECT
+            date_sub( curdate( ), INTERVAL 4 DAY ) AS click_date UNION ALL
+        SELECT
+            date_sub( curdate( ), INTERVAL 5 DAY ) AS click_date UNION ALL
+        SELECT
+            date_sub( curdate( ), INTERVAL 6 DAY ) AS click_date
+            ) a
+            ) a
+            LEFT JOIN (
+        SELECT
+            *
+        FROM
+            (
+        SELECT
+            sum( amount ) sum,
+            count( * ) count,
+            date( o.update_time ) update_time
+        FROM
+            order_manager o
+            LEFT JOIN product p ON p.product_id = o.product_id
+        WHERE
+            merchants_id = #{merchantsId}
+            AND o.STATUS = '30'
+        GROUP BY
+            update_time
+            ) b
+            ) b ON a.click_date = b.update_time
+    </select>
+
+
+</mapper>

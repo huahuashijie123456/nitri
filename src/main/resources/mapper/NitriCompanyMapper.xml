@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fuhuitong.nitri.xgd.mapper.NitriCompanyMapper">
+
+    <select id="queryNitriCompanyPage" resultType="com.fuhuitong.nitri.xgd.entity.NitriCompany">
+        select
+            nc.id
+            ,nc.full_name
+            ,nc.legal_person
+            ,nc.telphone
+            ,nc.detailed_address
+            ,nc.recommended_sign
+            ,nc.create_time
+        from
+            nitri_company nc
+        where
+            nc.delete_sign=0
+        <if test="nitriCompany.fullName!=null and nitriCompany.fullName!=''">
+            and  nc.full_name like '%${nitriCompany.fullName}%'
+        </if>
+        <if test="nitriCompany.startTime!=null">
+            and nc.create_time &gt;=#{nitriCompany.startTime}
+        </if>
+        <if test="nitriCompany.endTime!=null">
+            and nc.create_time &lt;#{nitriCompany.endTime}
+        </if>
+        order  by nc.create_time DESC
+    </select>
+    
+    <update id="updateNitriCompanyByStatus"  parameterType="com.fuhuitong.nitri.xgd.entity.NitriCompany">
+        update
+            nitri_company
+        set
+            status=#{nitriCompany.status}
+        where
+            id=#{nitriCompany.id}
+    </update>
+</mapper>
